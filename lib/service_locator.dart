@@ -11,13 +11,14 @@ import '../presentation/cubits/products_cubit.dart';
 import '../presentation/cubits/cart_cubit.dart';
 import '../presentation/cubits/wishlist_cubit.dart';
 
+import '../auth/data/repositories.dart';
+import '../auth/presentation/cubits/auth_cubit.dart';
+
 final sl = GetIt.instance;
 
 void setupServiceLocator() {
-  // ─── API Service ───────────────────────────────────────────────
   sl.registerLazySingleton<ApiService>(() => ApiService());
 
-  // ─── Remote Data Sources ────────────────────────────────────────
   sl.registerLazySingleton<ProductsRemoteDataSource>(
     () => ProductsRemoteDataSource(apiService: sl()),
   );
@@ -26,9 +27,8 @@ void setupServiceLocator() {
   );
   sl.registerLazySingleton<WishlistRemoteDataSource>(
     () => WishlistRemoteDataSourceImpl(sl()),
-  ); // ✅ مهم
+  );
 
-  // ─── Repositories ──────────────────────────────────────────────
   sl.registerLazySingleton<ProductsRepository>(
     () => ProductsRepositoryImpl(remoteDataSource: sl()),
   );
@@ -38,14 +38,17 @@ void setupServiceLocator() {
   sl.registerLazySingleton<WishlistRepository>(
     () => WishlistRepositoryImpl(remoteDataSource: sl()),
   );
+  sl.registerLazySingleton<AuthRepository>(
+    () => AuthRepository(apiService: sl()),
+  );
 
-  // ─── Cubits ────────────────────────────────────────────────────
-  sl.registerFactory<HomeCubit>(() => HomeCubit(productsRepository: sl()));
-  sl.registerFactory<ProductsCubit>(
+  sl.registerLazySingleton<HomeCubit>(() => HomeCubit(productsRepository: sl()));
+  sl.registerLazySingleton<ProductsCubit>(
     () => ProductsCubit(productsRepository: sl()),
   );
   sl.registerLazySingleton<CartCubit>(() => CartCubit(cartRepository: sl()));
   sl.registerLazySingleton<WishlistCubit>(
     () => WishlistCubit(wishlistRepository: sl()),
   );
+  sl.registerFactory<AuthCubit>(() => AuthCubit(repository: sl()));
 }

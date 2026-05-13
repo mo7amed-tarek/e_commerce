@@ -12,6 +12,7 @@ class Product {
   final int sold;
   final Category? category;
   final Brand? brand;
+  final List<SubCategory>? subcategory;
 
   Product({
     required this.id,
@@ -27,6 +28,7 @@ class Product {
     required this.sold,
     this.category,
     this.brand,
+    this.subcategory,
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -46,6 +48,11 @@ class Product {
           ? Category.fromJson(json['category'])
           : null,
       brand: json['brand'] != null ? Brand.fromJson(json['brand']) : null,
+      subcategory: json['subcategory'] != null
+          ? (json['subcategory'] as List)
+              .map((i) => SubCategory.fromJson(i))
+              .toList()
+          : null,
     );
   }
 
@@ -64,6 +71,7 @@ class Product {
       'sold': sold,
       'category': category?.toJson(),
       'brand': brand?.toJson(),
+      'subcategory': subcategory?.map((e) => e.toJson()).toList(),
     };
   }
 }
@@ -112,5 +120,32 @@ class Brand {
 
   Map<String, dynamic> toJson() {
     return {'_id': id, 'name': name, 'image': image};
+  }
+}
+
+class SubCategory {
+  final String id;
+  final String name;
+  final String slug;
+  final String category;
+
+  SubCategory({
+    required this.id,
+    required this.name,
+    required this.slug,
+    required this.category,
+  });
+
+  factory SubCategory.fromJson(Map<String, dynamic> json) {
+    return SubCategory(
+      id: json['_id'] ?? '',
+      name: json['name'] ?? '',
+      slug: json['slug'] ?? '',
+      category: json['category'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'_id': id, 'name': name, 'slug': slug, 'category': category};
   }
 }

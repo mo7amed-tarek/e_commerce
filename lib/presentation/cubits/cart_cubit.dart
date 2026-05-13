@@ -10,7 +10,6 @@ abstract class CartState extends Equatable {
 }
 
 class CartInitial extends CartState {}
-
 class CartLoading extends CartState {}
 
 class CartLoaded extends CartState {
@@ -29,29 +28,39 @@ class CartError extends CartState {
   List<Object?> get props => [message];
 }
 
+class CartAddedSuccess extends CartState {
+  final String message;
+  CartAddedSuccess({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
+
 class CartCubit extends Cubit<CartState> {
   final CartRepository cartRepository;
 
   CartCubit({required this.cartRepository}) : super(CartInitial());
 
-  int get cartCount {
-    if (state is CartLoaded) {
-      return (state as CartLoaded).cart.products.length;
-    }
-    return 0;
-  }
+  CartModel? _currentCart;
 
-  Future<void> getCart() async {
+  int get cartCount => _currentCart?.products.length ?? 0;
+
+  Future<void> getCart({bool silent = false}) async {
     if (!ApiService().hasToken()) {
       emit(CartError(message: "You must be logged in to view the cart"));
       return;
     }
-    emit(CartLoading());
+    
+    if (!silent) emit(CartLoading());
+    
     try {
       final result = await cartRepository.getCart();
       result.fold(
         (error) => emit(CartError(message: error)),
-        (cart) => emit(CartLoaded(cart: cart)),
+        (cart) {
+          _currentCart = cart;
+          emit(CartLoaded(cart: cart));
+        },
       );
     } catch (e) {
       emit(CartError(message: e.toString()));
@@ -63,45 +72,38 @@ class CartCubit extends Cubit<CartState> {
       emit(CartError(message: "You must be logged in to add products"));
       return;
     }
-    emit(CartLoading());
-    final result = await cartRepository.addToCart(
-      productId,
-      quantity: quantity,
+    
+    final result = await cartRepository.addToCart(productId, quantity: quantity);
+    result.fold(
+      (error) => emit(CartError(message: error)),
+      (_) async {
+        emit(CartAddedSuccess(message: "Product added to cart successfully"));
+        await getCart(silent: true);
+      },
     );
-    result.fold((error) => emit(CartError(message: error)), (_) async {
-      await getCart();
-    });
   }
 
   Future<void> removeFromCart(String productId) async {
-    if (!ApiService().hasToken()) {
-      emit(
-        CartError(
-          message: "You must be logged in to remove products from the cart",
-        ),
-      );
-      return;
-    }
     emit(CartLoading());
     final result = await cartRepository.removeFromCart(productId);
     result.fold(
       (error) => emit(CartError(message: error)),
-      (cart) => emit(CartLoaded(cart: cart)),
+      (cart) {
+        _currentCart = cart;
+        emit(CartLoaded(cart: cart));
+      },
     );
   }
 
   Future<void> updateCount(String productId, int count) async {
-    if (!ApiService().hasToken()) {
-      emit(
-        CartError(message: "You must be logged in to update product quantity"),
-      );
-      return;
-    }
     emit(CartLoading());
     final result = await cartRepository.updateCartItemCount(productId, count);
     result.fold(
       (error) => emit(CartError(message: error)),
-      (cart) => emit(CartLoaded(cart: cart)),
+      (cart) {
+        _currentCart = cart;
+        emit(CartLoaded(cart: cart));
+      },
     );
   }
 }

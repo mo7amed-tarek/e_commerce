@@ -28,7 +28,7 @@ class CartRemoteDataSource {
     if (!apiService.hasToken()) throw Exception("User not logged in");
 
     final response = await apiService.post(
-      ApiConstants.addToCart,
+      ApiConstants.cart,
       data: {"productId": productId, "count": quantity},
     );
 
@@ -73,7 +73,7 @@ class CartRemoteDataSource {
   Future<void> clearCart() async {
     if (!apiService.hasToken()) throw Exception("User not logged in");
 
-    final response = await apiService.delete(ApiConstants.clearCart);
+    final response = await apiService.delete(ApiConstants.cart);
 
     if (response.statusCode == 401) {
       throw Exception("Unauthorized. Please login again.");

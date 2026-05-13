@@ -14,13 +14,22 @@ class HomeInitial extends HomeState {}
 class HomeLoading extends HomeState {}
 
 class HomeLoaded extends HomeState {
-  final List<Product> featuredProducts;
   final List<Category> categories;
+  final List<Product> featuredProducts;
+  final Set<String> availableSubCategoryIds;
 
-  HomeLoaded({required this.featuredProducts, required this.categories});
+  HomeLoaded({
+    required this.categories,
+    required this.featuredProducts,
+    required this.availableSubCategoryIds,
+  });
 
   @override
-  List<Object?> get props => [featuredProducts, categories];
+  List<Object?> get props => [
+    categories,
+    featuredProducts,
+    availableSubCategoryIds,
+  ];
 }
 
 class HomeError extends HomeState {
@@ -45,19 +54,35 @@ class HomeCubit extends Cubit<HomeState> {
     final productsResult = await productsRepository.getProducts();
     final categoriesResult = await productsRepository.getCategories();
 
-    productsResult.fold(
-      (error) => emit(HomeError(error)),
-      (products) {
-        categoriesResult.fold(
-          (error) => emit(HomeError(error)),
-          (categories) => emit(
-            HomeLoaded(
-              featuredProducts: products.take(10).toList(),
-              categories: categories,
-            ),
+    categoriesResult.fold((error) => emit(HomeError(error)), (categories) {
+      productsResult.fold((error) => emit(HomeError(error)), (products) {
+        final Set<String> workingCategoryIds = products
+            .where((p) => p.category?.id != null)
+            .map<String>((p) => p.category!.id)
+            .toSet();
+
+        final Set<String> workingSubCategoryIds = products
+            .where((p) => p.subcategory != null)
+            .expand((p) => p.subcategory!)
+            .map<String>((s) => s.id)
+            .toSet();
+
+        final List<Category> filteredCats = categories
+            .where((cat) => workingCategoryIds.contains(cat.id))
+            .toList();
+
+        final finalCategories = filteredCats.isNotEmpty
+            ? filteredCats
+            : categories;
+
+        emit(
+          HomeLoaded(
+            categories: finalCategories,
+            featuredProducts: products,
+            availableSubCategoryIds: workingSubCategoryIds,
           ),
         );
-      },
-    );
+      });
+    });
   }
 }

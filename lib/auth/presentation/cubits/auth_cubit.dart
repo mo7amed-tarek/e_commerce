@@ -1,5 +1,7 @@
 import 'package:ecommerce/auth/data/models.dart';
 import 'package:ecommerce/auth/data/repositories.dart';
+import 'package:ecommerce/core/network/api_service.dart';
+import 'package:ecommerce/service_locator.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'auth_state.dart';
 
@@ -50,6 +52,20 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  Future<void> getProfile() async {
+    final apiService = sl<ApiService>();
+    if (!apiService.hasToken()) return;
+
+    try {
+      final userMap = await apiService.getUser();
+      if (userMap != null) {
+        currentUser = UserModel.fromJson(userMap);
+        emit(SignInSuccess(currentUser!));
+      }
+    } catch (e) {
+    }
+  }
+
   Future<void> forgotPassword({required String email}) async {
     emit(AuthLoading());
     try {
@@ -86,12 +102,12 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
-  void updateUser({
+  Future<void> updateUser({
     String? name,
     String? email,
     String? phone,
     String? address,
-  }) {
+  }) async {
     if (currentUser == null) return;
 
     currentUser = currentUser!.copyWith(
@@ -101,7 +117,14 @@ class AuthCubit extends Cubit<AuthState> {
       address: address,
     );
 
+    await sl<ApiService>().saveUser(currentUser!.toJson());
     emit(SignInSuccess(currentUser!));
+  }
+
+  Future<void> logout() async {
+    await sl<ApiService>().clearToken();
+    currentUser = null;
+    emit(AuthInitial());
   }
 
   void resetState() => emit(AuthInitial());

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../../../../core/theme/app_theme.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:ecommerce/core/network/api_service.dart';
+import 'package:ecommerce/core/theme/app_theme.dart';
+import 'package:ecommerce/service_locator.dart';
+import 'package:ecommerce/auth/presentation/cubits/auth_cubit.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -36,9 +40,17 @@ class _SplashScreenState extends State<SplashScreen>
       _controller.forward();
     });
 
-    Future.delayed(const Duration(milliseconds: 2400), () {
+    Future.delayed(const Duration(milliseconds: 2400), () async {
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/sign-in');
+        await sl<ApiService>().ensureTokenLoaded();
+        if (mounted) {
+          await context.read<AuthCubit>().getProfile();
+          final hasToken = sl<ApiService>().hasToken();
+          Navigator.pushReplacementNamed(
+            context,
+            hasToken ? '/home' : '/sign-in',
+          );
+        }
       }
     });
   }

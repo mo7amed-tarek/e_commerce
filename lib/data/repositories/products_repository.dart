@@ -7,12 +7,23 @@ abstract class ProductsRepository {
   Future<Either<String, List<Product>>> getProductsByCategory(String categoryId);
   Future<Either<String, Product>> getProductById(String productId);
   Future<Either<String, List<Category>>> getCategories();
+  Future<Either<String, List<Product>>> searchProducts(String keyword);
 }
 
 class ProductsRepositoryImpl implements ProductsRepository {
   final ProductsRemoteDataSource remoteDataSource;
 
   ProductsRepositoryImpl({required this.remoteDataSource});
+
+  @override
+  Future<Either<String, List<Product>>> searchProducts(String keyword) async {
+    try {
+      final products = await remoteDataSource.searchProducts(keyword);
+      return Right(products);
+    } catch (e) {
+      return Left(e.toString());
+    }
+  }
 
   @override
   Future<Either<String, List<Product>>> getProducts() async {

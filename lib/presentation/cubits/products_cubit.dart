@@ -50,4 +50,17 @@ class ProductsCubit extends Cubit<ProductsState> {
       (products) => emit(ProductsLoaded(products: products, categoryId: categoryId)),
     );
   }
+
+  Future<void> searchProducts(String keyword) async {
+    if (keyword.trim().isEmpty) {
+      emit(ProductsInitial());
+      return;
+    }
+    emit(ProductsLoading());
+    final result = await productsRepository.searchProducts(keyword);
+    result.fold(
+      (error) => emit(ProductsError(error)),
+      (products) => emit(ProductsLoaded(products: products)),
+    );
+  }
 }

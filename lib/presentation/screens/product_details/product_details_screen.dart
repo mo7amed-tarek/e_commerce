@@ -139,10 +139,10 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-          ? Center(child: Text(_error!))
-          : _product != null
-          ? _buildContent()
-          : const SizedBox(),
+              ? Center(child: Text(_error!))
+              : _product != null
+                  ? _buildContent()
+                  : const SizedBox(),
       bottomNavigationBar: _product != null ? _buildBottomBar() : null,
     );
   }

@@ -1,7 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-// ── Request Models ─────────────────────────────────────────────────────────
-
 class SignInRequest {
   final String username;
   final String password;
@@ -48,15 +46,13 @@ class ResetPasswordRequest {
   });
 }
 
-// ── User Model ──────────────────────────────────────────────────────────────
-
 class UserModel extends Equatable {
   final String? id;
   final String? name;
   final String? email;
   final String? phone;
   final String? role;
-  final String? address; // ← أضف ده
+  final String? address;
 
   const UserModel({
     this.id,
@@ -76,11 +72,11 @@ class UserModel extends Equatable {
 
     return UserModel(
       id: json['_id'] ?? json['id'],
-      name: json['name'],
+      name: json['name'] ?? json['fullName'],
       email: json['email'],
-      phone: json['phone'],
+      phone: json['phone'] ?? json['mobile'] ?? json['tel'] ?? json['phoneNumber'],
       role: json['role'],
-      address: json['address'], // ← أضف ده
+      address: json['address'],
     );
   }
 
@@ -101,7 +97,7 @@ class UserModel extends Equatable {
     String? email,
     String? phone,
     String? role,
-    String? address, // ← أضف ده
+    String? address,
   }) {
     return UserModel(
       id: id ?? this.id,

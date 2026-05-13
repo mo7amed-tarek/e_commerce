@@ -95,14 +95,67 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 0,
-        title: Text(
-          'Welcome, ${user?.name ?? 'Guest'}',
-          style: const TextStyle(
-            color: AppColors.primary,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
+        toolbarHeight: 70,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Route',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                fontStyle: FontStyle.italic,
+                letterSpacing: -1,
+              ),
+            ),
+            if (user != null)
+              Text(
+                'Good Morning, ${user.name?.split(' ').first}',
+                style: TextStyle(
+                  color: AppColors.primary.withOpacity(0.5),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+          ],
         ),
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.notifications_none_outlined, color: AppColors.primary),
+          ),
+          BlocBuilder<CartCubit, CartState>(
+            builder: (context, state) {
+              final count = context.read<CartCubit>().cartCount;
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pushNamed(context, '/cart'),
+                    icon: const Icon(Icons.shopping_cart_outlined, color: AppColors.primary),
+                  ),
+                  if (count > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                        child: Text(
+                          '$count',
+                          style: const TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: IndexedStack(index: _navIndex, children: _screens),
       bottomNavigationBar: RouteBottomNavBar(
@@ -112,7 +165,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ================= HOME BODY =================
   Widget _buildHomeBody() {
     return BlocBuilder<HomeCubit, HomeState>(
       builder: (context, state) {
@@ -149,7 +201,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildContent(BuildContext context, HomeLoaded state) {
     return CustomScrollView(
       slivers: [
-        SliverToBoxAdapter(child: _buildSearchBar()),
         SliverToBoxAdapter(child: _buildBanner()),
         const SliverToBoxAdapter(child: SizedBox(height: 16)),
         SliverToBoxAdapter(
@@ -166,11 +217,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   (context, index) {
                     final product = state.featuredProducts[index];
 
-                    final isInWishlist = wishlistState is WishlistLoaded
-                        ? wishlistState.wishlistIds.contains(product.id)
-                        : context.read<WishlistCubit>().isInWishlist(
-                            product.id,
-                          );
+                    final isInWishlist = context.watch<WishlistCubit>().isInWishlist(product.id);
 
                     return BlocBuilder<CartCubit, CartState>(
                       builder: (context, cartState) {
@@ -217,26 +264,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Container(
-        height: 42,
-        decoration: BoxDecoration(
-          color: AppColors.lightGrey,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const TextField(
-          decoration: InputDecoration(
-            hintText: 'What do you search for?',
-            hintStyle: TextStyle(color: AppColors.grey, fontSize: 13),
-            prefixIcon: Icon(Icons.search, color: AppColors.grey, size: 20),
-            border: InputBorder.none,
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildBanner() {
     return Column(
@@ -368,3 +395,5 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
+

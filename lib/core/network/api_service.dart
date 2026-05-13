@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:ecommerce/core/api/api_constants.dart';
@@ -8,12 +9,13 @@ class ApiService {
 
   ApiService._internal() {
     _initDio();
-    _loadToken();
+    _loadTokenFuture = _loadToken();
   }
 
   late final Dio _dio;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   String? _token;
+  Future<void>? _loadTokenFuture;
 
   void _initDio() {
     _dio = Dio(
@@ -32,16 +34,13 @@ class ApiService {
 
           if (_token != null && _token!.isNotEmpty) {
             options.headers['token'] = _token;
-            print(' Token added to headers');
           }
           return handler.next(options);
         },
         onResponse: (response, handler) {
-          print(' ${response.statusCode}');
           return handler.next(response);
         },
         onError: (e, handler) async {
-          print(' ${e.response?.statusCode} - ${e.response?.data}');
           return handler.next(e);
         },
       ),
@@ -55,13 +54,28 @@ class ApiService {
   Future<void> saveToken(String token) async {
     _token = token.trim();
     await _storage.write(key: 'accessToken', value: _token);
-    print(' Token saved');
   }
 
   Future<void> clearToken() async {
     _token = null;
     await _storage.delete(key: 'accessToken');
-    print(' Token cleared');
+    await _storage.delete(key: 'userData');
+  }
+
+  Future<void> saveUser(Map<String, dynamic> userData) async {
+    await _storage.write(key: 'userData', value: jsonEncode(userData));
+  }
+
+  Future<Map<String, dynamic>?> getUser() async {
+    final data = await _storage.read(key: 'userData');
+    if (data != null) {
+      return jsonDecode(data);
+    }
+    return null;
+  }
+
+  Future<void> ensureTokenLoaded() async {
+    await _loadTokenFuture;
   }
 
   String? getToken() => _token;

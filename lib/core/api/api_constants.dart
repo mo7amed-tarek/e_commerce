@@ -7,6 +7,9 @@ class ApiConstants {
   static const String forgotPassword = 'auth/forgotPasswords';
   static const String verifyOtp = 'auth/verifyResetCode';
   static const String resetPassword = 'auth/resetPassword';
+  static const String updatePassword = 'users/changeMyPassword';
+  static const String updateUserData = 'users/updateMe';
+  static const String verifyToken = 'auth/verifyToken';
 
   // Categories
   static const String categories = 'categories';
@@ -31,12 +34,19 @@ class ApiConstants {
   static const String removeFromWishlist = 'wishlist/';
   static const String getUserWishlist = 'wishlist';
 
+  // Addresses
+  static const String addresses = 'addresses';
+
   // Cart Endpoints
-  static const String cart = 'cart'; // GET, POST
-  static const String addToCart = 'cart'; // POST
-  static const String clearCart = 'cart'; // DELETE
-  static const String removeCartItem = 'cart/'; // + itemId
-  static const String updateCartItem = 'cart/'; // + itemId
+  static const String cart = 'cart';
+  static const String cartV2 = 'cart'; // Same endpoint usually, but V2 might differ in some APIs
+
+  // Reviews
+  static const String reviews = 'reviews';
+
+  // Orders
+  static const String orders = 'orders';
+  static const String checkoutSession = 'orders/checkout-session/';
 
   // Timeout
   static const int connectTimeout = 30000;

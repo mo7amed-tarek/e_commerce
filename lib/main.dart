@@ -1,8 +1,8 @@
+import 'package:ecommerce/presentation/cubits/products_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'core/theme/app_theme.dart';
-import 'core/network/api_service.dart';
 import 'service_locator.dart';
 
 import 'auth/presentation/cubits/auth_cubit.dart';
@@ -17,11 +17,11 @@ import 'auth/presentation/screens/reset_password_screen.dart';
 import 'auth/presentation/screens/verify_otp_screen.dart';
 
 import 'presentation/screens/home/home_screen.dart';
+import 'presentation/screens/cart/cart_screen.dart';
 import 'splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await ApiService().clearToken();
 
   setupServiceLocator();
   runApp(const RouteApp());
@@ -34,10 +34,11 @@ class RouteApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<AuthCubit>(create: (_) => AuthCubit()),
+        BlocProvider<AuthCubit>(create: (_) => sl<AuthCubit>()),
         BlocProvider<HomeCubit>(create: (_) => sl<HomeCubit>()),
         BlocProvider<CartCubit>(create: (_) => sl<CartCubit>()),
         BlocProvider<WishlistCubit>(create: (_) => sl<WishlistCubit>()),
+        BlocProvider<ProductsCubit>(create: (_) => sl<ProductsCubit>()),
       ],
       child: MaterialApp(
         title: 'Route E-Commerce',
@@ -47,6 +48,49 @@ class RouteApp extends StatelessWidget {
 
         initialRoute: '/',
         onGenerateRoute: _generateRoute,
+        builder: (context, child) {
+          return MultiBlocListener(
+            listeners: [
+              BlocListener<CartCubit, CartState>(
+                listener: (context, state) {
+                  if (state is CartAddedSuccess) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(state.message),
+                        backgroundColor: AppColors.primary,
+                        duration: const Duration(seconds: 2),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  } else if (state is CartError) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(state.message),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                },
+              ),
+              BlocListener<WishlistCubit, WishlistState>(
+                listener: (context, state) {
+                  if (state is WishlistSuccess) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(state.message),
+                        backgroundColor: AppColors.discountColor,
+                        duration: const Duration(seconds: 1),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
+              ),
+            ],
+            child: child!,
+          );
+        },
       ),
     );
   }
@@ -78,6 +122,9 @@ class RouteApp extends StatelessWidget {
 
       case '/home':
         return MaterialPageRoute(builder: (_) => const HomeScreen());
+
+      case '/cart':
+        return MaterialPageRoute(builder: (_) => const CartScreen());
 
       default:
         return MaterialPageRoute(builder: (_) => const SplashScreen());

@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../cubits/cart_cubit.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/cart_model.dart';
+import 'checkout_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({Key? key}) : super(key: key);
@@ -249,6 +250,7 @@ class _CartScreenState extends State<CartScreen> {
                   style: const TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 13,
+                    color: AppColors.primary,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -356,7 +358,7 @@ class _CartScreenState extends State<CartScreen> {
             children: [
               const Text(
                 'Total price',
-                style: TextStyle(color: AppColors.grey, fontSize: 12),
+                style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
               Text(
                 'EGP ${cart.totalCartPrice.toStringAsFixed(0)}',
@@ -372,11 +374,9 @@ class _CartScreenState extends State<CartScreen> {
           Expanded(
             child: ElevatedButton.icon(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Proceeding to checkout...'),
-                    backgroundColor: AppColors.primary,
-                  ),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CheckoutScreen()),
                 );
               },
               icon: const Icon(

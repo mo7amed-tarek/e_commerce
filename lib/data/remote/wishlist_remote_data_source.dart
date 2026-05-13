@@ -64,8 +64,20 @@ class WishlistRemoteDataSourceImpl implements WishlistRemoteDataSource {
           return Product.fromJson(Map<String, dynamic>.from(data));
         }
 
-        throw Exception(
-          response.data['message'] ?? "Added to wishlist but no product data",
+        return Product(
+          id: productId,
+          title: '',
+          description: '',
+          quantity: 0,
+          price: 0,
+          imageCover: '',
+          images: [],
+          category: Category(id: '', name: '', slug: '', image: ''),
+          brand: Brand(id: '', name: '', image: ''),
+          ratingsAverage: 0,
+          ratingsQuantity: 0,
+          sold: 0,
+          subcategory: [],
         );
       } else {
         throw Exception(

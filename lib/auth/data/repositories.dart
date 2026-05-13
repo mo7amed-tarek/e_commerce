@@ -4,7 +4,9 @@ import 'package:ecommerce/core/network/api_service.dart';
 import 'models.dart';
 
 class AuthRepository {
-  final ApiService _api = ApiService();
+  final ApiService _api;
+
+  AuthRepository({ApiService? apiService}) : _api = apiService ?? ApiService();
 
   Future<UserModel> signIn(SignInRequest request) async {
     try {
@@ -13,15 +15,16 @@ class AuthRepository {
         data: {'email': request.username, 'password': request.password},
       );
 
-      print(' LOGIN RESPONSE: ${response.data}');
-
       final token = response.data['token'];
-      print(' Token from API: ${token.substring(0, 20)}...');
-
       await _api.saveToken(token);
 
-      final user = response.data['user'] ?? response.data['data'];
-      return UserModel.fromJson(user);
+      final Map<String, dynamic> userMap = Map<String, dynamic>.from(response.data['user'] ?? response.data['data']);
+      
+      // If phone is missing in response, we can't do much here since it's login
+      // but we ensure it's saved.
+      await _api.saveUser(userMap);
+      
+      return UserModel.fromJson(userMap);
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ?? 'Login failed');
     }
@@ -40,15 +43,19 @@ class AuthRepository {
         },
       );
 
-      print(' SIGNUP RESPONSE: ${response.data}');
-
       final token = response.data['token'];
-      print(' Token from API: ${token.substring(0, 20)}...');
-
       await _api.saveToken(token);
 
-      final user = response.data['user'] ?? response.data['data'];
-      return UserModel.fromJson(user);
+      final Map<String, dynamic> userMap = Map<String, dynamic>.from(response.data['user'] ?? response.data['data']);
+      
+      // ✅ حل عبقري: لو الـ API مرجعش الموبايل، هنحطه إحنا من الـ request
+      if (userMap['phone'] == null && userMap['mobile'] == null) {
+        userMap['phone'] = request.mobile;
+      }
+      
+      await _api.saveUser(userMap);
+      
+      return UserModel.fromJson(userMap);
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ?? 'Signup failed');
     }

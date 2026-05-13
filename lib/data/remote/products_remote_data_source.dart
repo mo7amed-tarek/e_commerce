@@ -14,12 +14,38 @@ class ProductsRemoteDataSource {
   }
 
   Future<List<Product>> getProductsByCategory(String categoryId) async {
-    final response = await apiService.get(
+    var response = await apiService.get(
       ApiConstants.products,
       queryParameters: {'category': categoryId},
     );
-    final List<dynamic> data = response.data['data'] ?? [];
+    
+    List<dynamic> data = response.data['data'] ?? [];
+    
+    if (data.isEmpty) {
+       response = await apiService.get(
+        ApiConstants.products,
+        queryParameters: {'subcategory': categoryId},
+      );
+      data = response.data['data'] ?? [];
+    }
+
+    if (data.isEmpty) {
+       response = await apiService.get(
+        ApiConstants.products,
+        queryParameters: {'category[in]': categoryId},
+      );
+      data = response.data['data'] ?? [];
+    }
+
     return data.map((e) => Product.fromJson(e)).toList();
+  }
+
+  Future<List<SubCategory>> getSubCategories(String categoryId) async {
+    final response = await apiService.get(
+      '${ApiConstants.categories}/$categoryId/subcategories',
+    );
+    final List<dynamic> data = response.data['data'] ?? [];
+    return data.map((e) => SubCategory.fromJson(e)).toList();
   }
 
   Future<Product> getProductById(String productId) async {
@@ -40,5 +66,14 @@ class ProductsRemoteDataSource {
       '${ApiConstants.categoryById}$categoryId',
     );
     return Category.fromJson(response.data['data']);
+  }
+
+  Future<List<Product>> searchProducts(String keyword) async {
+    final response = await apiService.get(
+      ApiConstants.products,
+      queryParameters: {'keyword': keyword},
+    );
+    final List<dynamic> data = response.data['data'] ?? [];
+    return data.map((e) => Product.fromJson(e)).toList();
   }
 }

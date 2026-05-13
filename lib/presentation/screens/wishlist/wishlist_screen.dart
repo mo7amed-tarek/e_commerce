@@ -25,32 +25,6 @@ class _WishlistScreenState extends State<WishlistScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        title: const Text(
-          'Route',
-          style: TextStyle(
-            color: AppColors.primary,
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.search, color: AppColors.primary),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.shopping_cart_outlined,
-              color: AppColors.primary,
-            ),
-          ),
-        ],
-      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -93,6 +67,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                   }
                   return _buildWishlistContent(context, state.products);
                 }
+
                 return _buildEmptyWishlist();
               },
             ),
@@ -223,6 +198,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                       style: const TextStyle(
                         fontWeight: FontWeight.w500,
                         fontSize: 13,
+                        color: AppColors.primary,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

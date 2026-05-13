@@ -15,36 +15,22 @@ class CartModel {
 
   factory CartModel.fromJson(Map<String, dynamic> json) {
     try {
-      print(' Parsing CartModel from JSON');
-      print(' Raw JSON: $json');
-
       final data = json['data'] ?? json;
-      print(' Data object: $data');
-
       final productsList = data['products'] as List<dynamic>? ?? [];
-      print(' Products list length: ${productsList.length}');
-
       final validProducts = <CartItem>[];
+
       for (var item in productsList) {
         try {
-          print(' Parsing product item: $item');
-
           if (item != null) {
             final cartItem = CartItem.fromJson(item as Map<String, dynamic>);
-
             if (cartItem.product != null) {
               validProducts.add(cartItem);
-              print(' Product with details added');
-            } else {
-              print(' Skipping cart item without product details');
             }
           }
         } catch (e) {
-          print(' Error parsing cart item, skipping: $e');
+          // skip invalid items
         }
       }
-
-      print(' Valid products count: ${validProducts.length}');
 
       return CartModel(
         cartId: data['_id'] ?? '',
@@ -53,7 +39,6 @@ class CartModel {
         products: validProducts,
       );
     } catch (e) {
-      print(' Error parsing CartModel: $e');
       rethrow;
     }
   }
@@ -85,17 +70,13 @@ class CartItem {
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
     try {
-      print(' Parsing CartItem from JSON: $json');
-
       Product? productObj;
       final productData = json['product'];
 
       if (productData != null) {
         if (productData is Map<String, dynamic>) {
           productObj = Product.fromJson(productData);
-          print(' Product parsed as Object');
         } else if (productData is String) {
-          print(' Product is just an ID string: $productData');
           productObj = null;
         }
       }
@@ -107,7 +88,6 @@ class CartItem {
         product: productObj,
       );
     } catch (e) {
-      print(' Error parsing CartItem: $e');
       rethrow;
     }
   }

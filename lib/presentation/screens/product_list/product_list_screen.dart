@@ -6,9 +6,8 @@ import '../../cubits/wishlist_cubit.dart';
 import '../../widgets/shared_widgets.dart';
 import '../../../core/theme/app_theme.dart';
 import '../product_details/product_details_screen.dart';
-import '../../../data/repositories/products_repository.dart';
-import '../../../core/network/api_service.dart';
-import '../../../data/remote/products_remote_data_source.dart';
+
+import 'package:ecommerce/service_locator.dart';
 
 class ProductListScreen extends StatelessWidget {
   final String? categoryId;
@@ -23,21 +22,25 @@ class ProductListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ProductsCubit(
-        productsRepository: ProductsRepositoryImpl(
-          remoteDataSource: ProductsRemoteDataSource(apiService: ApiService()),
-        ),
-      )..loadProducts(categoryId: categoryId),
-      child: _ProductListView(categoryName: categoryName),
+      create: (context) =>
+          sl<ProductsCubit>()..loadProducts(categoryId: categoryId),
+      child: _ProductListView(
+        categoryName: categoryName,
+        categoryId: categoryId,
+      ),
     );
   }
 }
 
 class _ProductListView extends StatelessWidget {
   final String categoryName;
+  final String? categoryId;
 
-  const _ProductListView({Key? key, required this.categoryName})
-    : super(key: key);
+  const _ProductListView({
+    Key? key,
+    required this.categoryName,
+    this.categoryId,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -120,8 +123,9 @@ class _ProductListView extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         ElevatedButton(
-                          onPressed: () =>
-                              context.read<ProductsCubit>().loadProducts(),
+                          onPressed: () => context
+                              .read<ProductsCubit>()
+                              .loadProducts(categoryId: categoryId),
                           child: const Text('Retry'),
                         ),
                       ],
@@ -129,6 +133,28 @@ class _ProductListView extends StatelessWidget {
                   );
                 }
                 if (state is ProductsLoaded) {
+                  if (state.products.isEmpty) {
+                    return const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.inventory_2_outlined,
+                            size: 60,
+                            color: AppColors.grey,
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'No products found in this category',
+                            style: TextStyle(
+                              color: AppColors.grey,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
                   return GridView.builder(
                     padding: const EdgeInsets.all(12),
                     gridDelegate:
